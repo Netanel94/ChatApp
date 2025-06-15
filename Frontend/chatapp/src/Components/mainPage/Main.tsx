@@ -29,6 +29,7 @@ interface Message {
 interface Conversation {
   _id: string;
   users: string[];
+  chatName: string[];
   conversation: Message[];
 }
 

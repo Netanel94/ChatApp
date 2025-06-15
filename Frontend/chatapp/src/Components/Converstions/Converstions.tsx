@@ -11,13 +11,14 @@ interface User {
 
 interface Conversation {
   _id: string;
-  users: [string];
+  users: string[];
+  chatName: string[];
   conversetion: [];
 }
 
 function Converstions({ currConvo }) {
   const PF: string = import.meta.env.VITE_PUBLIC_FOLDER || "";
-  const [friend, setFriend] = useState<User>({ username: "", password: "" });
+  const [friend, setFriend] = useState<string>("");
   const { user } = useUserStore();
   const timeString =
     currConvo.conversation?.length > 0
@@ -31,16 +32,16 @@ function Converstions({ currConvo }) {
 
   useEffect(() => {
     const getFriend = async () => {
-      const friendId = currConvo.users.find(
-        (currUser: any) => currUser != user?._id
+      const friendName = currConvo.chatName.find(
+        (currUser: any) => currUser != user?.username
       );
       // console.log(friendId);
-      const res = await apiRequest.get(`/users/${friendId}`);
+      // const res = await apiRequest.get(`/users/${friendId}`);
       // console.log(res);
-      setFriend(res.data);
+      setFriend(friendName);
     };
     getFriend();
-  }, [currConvo.users]);
+  }, [currConvo.chatName]);
 
   return (
     <Box
@@ -81,7 +82,7 @@ function Converstions({ currConvo }) {
           }}
         >
           <Typography variant="subtitle2" color="primary.light">
-            {friend?.username}
+            {friend}
           </Typography>
           <Typography variant="caption" color="grey.500">
             {timeString}

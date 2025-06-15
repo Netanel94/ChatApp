@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const conversetionSchema = new mongoose.Schema(
   {
     users: { type: Array },
+    chatName: [String],
     conversation: [{ senderId: String, message: String, createdAt: Date }],
   },
   { collection: "Conversetions", timestamps: true }

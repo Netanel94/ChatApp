@@ -1,6 +1,7 @@
 import conversetionModel from "../Models/conversetionModel";
 interface Converstion {
   users: string[];
+  chatName: string[];
   conversetion: [{ senderId: string; message: string; createdAt: Date }];
 }
 
@@ -24,8 +25,6 @@ const findOneConversation = async (userId: string, senderId: string) => {
 
   return conversation;
 };
-
-
 
 const updateConversetion = async (convo: Converstion, id: string) => {
   await conversetionModel.findByIdAndUpdate(id, convo);

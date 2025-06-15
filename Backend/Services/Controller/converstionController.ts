@@ -13,6 +13,7 @@ const router = express.Router();
 
 interface Converstion {
   users: string[];
+  chatName: string[];
   conversetion: [{ senderId: string; message: string; createdAt: Date }];
 }
 

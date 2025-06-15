@@ -8,12 +8,13 @@ interface User {
   _id: string;
   username: string;
   password: string;
-  BlockedList: [string];
+  BlockedList: string[];
 }
 
 interface Conversation {
   _id: string;
-  users: [string];
+  users: string[];
+  chatName: string[];
   conversation: [];
 }
 
@@ -59,8 +60,12 @@ export default function Online({
       checkDifferentConvo(currConvo._id, currConvo);
     } else {
       const userId = user._id;
+      const username = user.username;
       const currUserId = currUser._id;
-      const newConvo = { users: [userId, currUserId] };
+      const newConvo = {
+        users: [userId, currUserId],
+        chatName: [username, currUser.username],
+      };
       const res = await apiRequest.post("/conversations", newConvo);
       const newConversation = res.data.status;
       checkDifferentConvo(newConversation._id, newConversation);
