@@ -47,8 +47,12 @@ const removeUser = (socketId: string) => {
   users = users.filter((user) => user.socketId !== socketId);
 };
 
-const getUser = (id: string) => {
-  return users.find((user) => user.userId === id);
+const getUser = (id: string | string[]) => {
+  if (Array.isArray(id)) {
+    return users.filter((user) => id.includes(user.userId));
+  } else {
+    return users.find((user) => user.userId === id);
+  }
 };
 
 io.on("connection", (socket: Socket) => {
@@ -61,12 +65,24 @@ io.on("connection", (socket: Socket) => {
     io.emit("getUsers", users);
   });
 
-  socket.on("sendMessage", ({ senderId, reciverId, message }) => {
+  socket.on("createGroups", (chats) => {
+    chats.forEach((chat: any) => socket.join(`conversation : ${chat._id}`));
+  });
+
+  socket.on("sendMessage", ({ senderId, reciverId, message, convoId }) => {
     console.log(`Message from ${senderId} to ${reciverId}: ${message}`);
     const user = getUser(reciverId);
     if (user) {
-      console.log(`Sending message to socket: ${user.socketId}`);
-      io.to(user.socketId).emit("getMessage", { senderId, message });
+      if (!Array.isArray(user)) {
+        console.log(`Sending message to socket: ${user.socketId}`);
+        io.to(user.socketId).emit("getMessage", { senderId, message, convoId });
+      } else {
+        io.to(`conversation : ${convoId}`).emit("getMessage", {
+          senderId,
+          message,
+          convoId,
+        });
+      }
     } else {
       console.log(`Receiver ${reciverId} not found in users array`);
     }

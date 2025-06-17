@@ -18,7 +18,7 @@ interface Conversation {
 
 function Converstions({ currConvo }) {
   const PF: string = import.meta.env.VITE_PUBLIC_FOLDER || "";
-  const [friend, setFriend] = useState<string>("");
+  const [currChatName, setCurrChatName] = useState<string>("");
   const { user } = useUserStore();
   const timeString =
     currConvo.conversation?.length > 0
@@ -31,16 +31,22 @@ function Converstions({ currConvo }) {
       : "No messages yet";
 
   useEffect(() => {
-    const getFriend = async () => {
-      const friendName = currConvo.chatName.find(
-        (currUser: any) => currUser != user?.username
-      );
-      // console.log(friendId);
-      // const res = await apiRequest.get(`/users/${friendId}`);
-      // console.log(res);
-      setFriend(friendName);
+    const chatName = async () => {
+      if (currConvo.chatName.length > 1) {
+        const friendName = currConvo.chatName.find(
+          (currUser: any) => currUser != user?.username
+        );
+        // console.log(friendId);
+        // const res = await apiRequest.get(`/users/${friendId}`);
+        // console.log(res);
+        setCurrChatName(friendName);
+      } else {
+        const chatName = currConvo.chatName[0];
+        setCurrChatName(chatName);
+      }
     };
-    getFriend();
+
+    chatName();
   }, [currConvo.chatName]);
 
   return (
@@ -82,7 +88,7 @@ function Converstions({ currConvo }) {
           }}
         >
           <Typography variant="subtitle2" color="primary.light">
-            {friend}
+            {currChatName}
           </Typography>
           <Typography variant="caption" color="grey.500">
             {timeString}

@@ -52,6 +52,7 @@ interface ArrivalMessage {
   senderId: string;
   message: string;
   createdAt: string;
+  convoId: string;
 }
 
 interface onlineUser {
@@ -74,23 +75,38 @@ const Main = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [onlineUsers, setOnlineUsers] = useState<onlineUser[]>([]);
   const [newGroupConversation, setNewGroupConversation] = useState({});
+  const [groupConversations, setGroupConversations] = useState<Conversation[]>(
+    []
+  );
 
   useEffect(() => {
-    const newSocket = io("http://localhost:8000", {
-      // transports: ["websocket"], // Force WebSocket
-      // forceNew: true,
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-    });
-    socket.current = newSocket;
-    socket.current.on("getMessage", (newMessage) => {
-      setArrivalMessage({
-        senderId: newMessage.senderId,
-        message: newMessage.message,
-        createdAt: new Date().toISOString(),
+    const startSocket = async () => {
+      const newSocket = io("http://localhost:8000", {
+        // transports: ["websocket"], // Force WebSocket
+        // forceNew: true,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
       });
-    });
+      socket.current = newSocket;
+      socket.current.on("getMessage", (newMessage) => {
+        setArrivalMessage({
+          senderId: newMessage.senderId,
+          message: newMessage.message,
+          createdAt: new Date().toISOString(),
+          convoId: newMessage.convoId,
+        });
+      });
+      const res = await apiRequest.get("/conversations");
+      const currGroups = res.data.filter(
+        (convo: Conversation) => convo.users.length > 2
+      );
+
+      socket.current.emit("createGroups", currGroups);
+
+      setGroupConversations(currGroups);
+    };
+    startSocket();
 
     return () => {
       if (socket.current) {
@@ -104,21 +120,23 @@ const Main = () => {
     setConversations((prevConvos) => [...prevConvos, newConversation]);
   };
 
-  const groupConversation = (
-    newConversation: Conversation,
-    groupName: string
-  ) => {
+  const groupConversation = (newConversation: Conversation) => {
     setNewGroupConversation(newConversation);
     setConversations((prevConvos) => [...prevConvos, newConversation]);
   };
 
   useEffect(() => {
     const arrivalMessageFunc = async () => {
+      const currentMessage = {
+        senderId: arrivalMessage.senderId,
+        message: arrivalMessage.message,
+        createdAt: arrivalMessage.createdAt,
+      };
       if (arrivalMessage && arrivalMessage.senderId && arrivalMessage.message) {
-        if (currConvo.users?.includes(arrivalMessage.senderId)) {
+        if (currConvo._id === arrivalMessage.convoId) {
           const updatedConvo = {
             ...currConvo,
-            conversation: [...currConvo.conversation, arrivalMessage],
+            conversation: [...currConvo.conversation, currentMessage],
           };
           setCurrConvo(updatedConvo);
 
@@ -139,7 +157,7 @@ const Main = () => {
           if (convoToUpdate) {
             const updatedConvo = {
               ...convoToUpdate,
-              conversation: [...convoToUpdate.conversation, arrivalMessage],
+              conversation: [...convoToUpdate.conversation, currentMessage],
             };
 
             setConversations((prevConversations) =>
@@ -157,7 +175,7 @@ const Main = () => {
             const newConvo: Conversation = res.data.conversation;
             const updatedConvo = {
               ...newConvo,
-              conversations: [...newConvo.conversation, arrivalMessage],
+              conversations: [...newConvo.conversation, currentMessage],
             };
 
             console.log("Conversations before a new chat" + conversations);
@@ -213,14 +231,22 @@ const Main = () => {
       createdAt: new Date().toISOString(),
     };
 
-    const reciverId = currConvo.users.find(
-      (currUser) => currUser !== user?._id
-    );
+    const reciverId =
+      currConvo.chatName.length > 1
+        ? currConvo.users.find((currUser) => currUser !== user?._id)
+        : currConvo.users.filter((currUser) => currUser !== user?._id);
 
-    if (socket) {
+    if (socket && !Array.isArray(reciverId)) {
       socket.current?.emit("sendMessage", {
         senderId: user?._id,
         reciverId,
+        message,
+      });
+    } else if (socket) {
+      socket.current?.emit("sendMessage", {
+        senderId: user?._id,
+        reciverId,
+        convoId: currConvo._id,
         message,
       });
     }

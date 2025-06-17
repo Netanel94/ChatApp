@@ -28,6 +28,7 @@ interface Message {
 interface Conversation {
   _id: string;
   users: string[];
+  chatName: string[];
   conversation: Message[];
 }
 
@@ -41,9 +42,10 @@ interface User {
 export default function UserInterface({ user, users, setgroupConversation }) {
   const [open, setOpen] = useState(false);
   const [openSnack, setOpenSnack] = useState(false);
-  const [addGroup, setAddGroup] = useState<string[]>([]);
+  const [addGroup, setAddGroup] = useState<User[]>([user]);
   const [errorMessage, setErrorMessage] = useState("");
   const [groupName, setGroupName] = useState("");
+  const [usersId, setUserIds] = useState<string[]>([user._id]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -52,16 +54,16 @@ export default function UserInterface({ user, users, setgroupConversation }) {
   const handleClose = async () => {
     if (groupName) {
       const groupConversation: Omit<Conversation, "_id"> = {
-        users: addGroup,
+        users: usersId,
+        chatName: [groupName],
         conversation: [],
       };
       try {
-        await apiRequest.post("/conversations", groupConversation);
+        const res = await apiRequest.post("/conversations", groupConversation);
+        setgroupConversation(res.data.status);
       } catch (e) {
         console.log(e);
       }
-
-      setgroupConversation(groupConversation, groupName);
     } else {
       setErrorMessage("Please enter group name");
       setOpenSnack(true);
@@ -87,6 +89,8 @@ export default function UserInterface({ user, users, setgroupConversation }) {
   const addNewUser = (userAdd) => {
     const check = addGroup.includes(userAdd);
     if (!check) {
+      const userId = userAdd._id;
+      setUserIds([...usersId, userId]);
       setAddGroup([...addGroup, userAdd]);
     } else {
       setErrorMessage("User Already Added");
@@ -149,7 +153,10 @@ export default function UserInterface({ user, users, setgroupConversation }) {
                 <Box
                   key={userAdd._id || index}
                   className="Popup-content-warpper"
-                  sx={{ display: "flex", justifyContent: "space-around" }}
+                  sx={{
+                    display: user?._id !== userAdd._id ? "flex" : "none",
+                    justifyContent: "space-around",
+                  }}
                 >
                   <Typography>{userAdd.username}</Typography>
                   <AddIcon
@@ -166,7 +173,7 @@ export default function UserInterface({ user, users, setgroupConversation }) {
             {addGroup.map((userAdd, index) => {
               return (
                 <Typography key={userAdd._id} sx={{ m: 1 }}>
-                  {userAdd?.username}
+                  {userAdd._id === user._id ? "" : userAdd?.username}
                 </Typography>
               );
             })}
