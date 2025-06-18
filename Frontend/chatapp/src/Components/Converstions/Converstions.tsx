@@ -71,7 +71,7 @@ function Converstions({ currConvo }) {
           height: 40,
           borderRadius: "50%",
         }}
-        src={`${PF}person/Unknown_person.jpg`}
+        src={`${PF}/Unknown_person.jpg`}
       />
       <Box
         sx={{

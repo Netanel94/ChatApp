@@ -13,11 +13,13 @@ import {
   Paper,
   Snackbar,
   Input,
+  Avatar,
 } from "@mui/material";
 import { Add, GroupAdd } from "@mui/icons-material";
 import React, { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import apiRequest from "../../Api/apiRequest.";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
 
 interface Message {
   senderId: string | undefined;
@@ -40,7 +42,9 @@ interface User {
 }
 
 export default function UserInterface({ user, users, setgroupConversation }) {
+  const PF: string = import.meta.env.VITE_PUBLIC_FOLDER || "";
   const [open, setOpen] = useState(false);
+  const [openUpload, setOpenUpload] = useState(false);
   const [openSnack, setOpenSnack] = useState(false);
   const [addGroup, setAddGroup] = useState<User[]>([user]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -50,6 +54,12 @@ export default function UserInterface({ user, users, setgroupConversation }) {
   const handleClickOpen = () => {
     setOpen(true);
   };
+
+  const handleClickUpload = () => {
+    setOpenUpload(true);
+  };
+
+  const handleCloseUpload = () => {};
 
   const handleClose = async () => {
     if (groupName) {
@@ -109,26 +119,114 @@ export default function UserInterface({ user, users, setgroupConversation }) {
       className="UserInfo"
     >
       <Typography color="white">Current User : </Typography>
-      <Typography sx={{ mt: 2, ml: 3 }} color="white">
+
+      <Avatar
+        sx={{
+          mt: 2,
+          ml: 2.5,
+          width: "60px",
+          height: "60px",
+          borderRadius: "50%",
+        }}
+        src={`${PF}/Unknown_person.jpg`}
+      ></Avatar>
+      <Typography sx={{ mt: 0.5, ml: 3 }} color="white">
         {user?.username}
       </Typography>
-      <Tooltip title="Create Group Chat">
-        <IconButton
-          onClick={handleClickOpen}
-          sx={{
-            p: 2,
-            mt: 1,
-            height: "10px",
-            width: "10px",
-            borderRadius: "30%",
-            bgcolor: "grey.900",
-            ":hover": { background: "rgba(107, 104, 104, 0.15)" },
-            color: "white",
-          }}
-        >
-          <GroupAdd />
-        </IconButton>
-      </Tooltip>
+      <Box sx={{ display: "flex", gap: 1 }}>
+        <Tooltip title="Create Group Chat">
+          <IconButton
+            onClick={handleClickOpen}
+            sx={{
+              p: 2,
+              mt: 1,
+              height: "10px",
+              width: "10px",
+              borderRadius: "30%",
+              bgcolor: "grey.900",
+              ":hover": { background: "rgba(107, 104, 104, 0.15)" },
+              color: "white",
+            }}
+          >
+            <GroupAdd />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Update Profile Picture">
+          <IconButton
+            onClick={handleClickUpload}
+            sx={{
+              p: 2,
+              mt: 1,
+              height: "10px",
+              width: "10px",
+              borderRadius: "30%",
+              bgcolor: "grey.900",
+              ":hover": { background: "rgba(107, 104, 104, 0.15)" },
+              color: "white",
+            }}
+          >
+            <FileUploadIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      <Dialog
+        open={openUpload}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        sx={{ maxWidth: "300" }}
+      >
+        <DialogTitle id="alert-dialog-title">Update Picture</DialogTitle>
+        <DialogContent>
+          <Box
+            className="Popup-content"
+            sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
+          >
+            <Input
+              placeholder="Change Profile Picture"
+              type="file"
+              onChange={() => {}}
+            ></Input>
+            {users.map((userAdd, index) => {
+              return (
+                <Box
+                  key={userAdd._id || index}
+                  className="Popup-content-warpper"
+                  sx={{
+                    display: user?._id !== userAdd._id ? "flex" : "none",
+                    justifyContent: "space-around",
+                  }}
+                >
+                  <Typography>{userAdd.username}</Typography>
+                  <AddIcon
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => {
+                      addNewUser(userAdd);
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Box>
+          <Box sx={{ display: "flex", flexWrap: "wrap" }}>
+            {addGroup.map((userAdd, index) => {
+              return (
+                <Typography key={userAdd._id} sx={{ m: 1 }}>
+                  {userAdd._id === user._id ? "" : userAdd?.username}
+                </Typography>
+              );
+            })}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Create</Button>
+          <Button onClick={cancelGroup} autoFocus>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog
         open={open}
         onClose={handleClose}
