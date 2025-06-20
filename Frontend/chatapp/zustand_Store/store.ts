@@ -6,7 +6,8 @@ interface User {
   _id: string;
   username: string;
   password: string;
-  BlockedList: [string];
+  profilePicture: string;
+  BlockedList: string[];
 }
 
 interface UserState {

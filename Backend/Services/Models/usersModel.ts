@@ -4,6 +4,7 @@ const userScehma = new mongoose.Schema(
   {
     username: String,
     password: String,
+    profilePicture: String,
     BlockedList: [String],
   },
   { collection: "Users" }

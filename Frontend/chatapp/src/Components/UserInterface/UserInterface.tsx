@@ -14,12 +14,19 @@ import {
   Snackbar,
   Input,
   Avatar,
+  TextField,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
 } from "@mui/material";
 import { Add, GroupAdd } from "@mui/icons-material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import apiRequest from "../../Api/apiRequest.";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import { useUserStore } from "../../../zustand_Store/store";
 
 interface Message {
   senderId: string | undefined;
@@ -38,7 +45,15 @@ interface User {
   _id: string;
   username: string;
   password: string;
+  profilePicture: string;
   BlockedList: string[];
+}
+interface ProfileImage {
+  id: number;
+  name: string;
+  displayName: string;
+  url: string;
+  fullUrl: string;
 }
 
 export default function UserInterface({ user, users, setgroupConversation }) {
@@ -50,6 +65,32 @@ export default function UserInterface({ user, users, setgroupConversation }) {
   const [errorMessage, setErrorMessage] = useState("");
   const [groupName, setGroupName] = useState("");
   const [usersId, setUserIds] = useState<string[]>([user._id]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const updateUser = useUserStore((state) => state.updateUser);
+  const [images, setImages] = useState<ProfileImage[]>([]);
+  const [selectedImage, setSelectedImage] = useState<ProfileImage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const response = await apiRequest.get("/users/images");
+        setImages(response.data);
+        console.log("Fetched images:", response.data);
+      } catch (error) {
+        console.error("Error fetching images:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchImages();
+  }, []);
+
+  const handleImageSelect = (image: ProfileImage) => {
+    setSelectedImage(image);
+    console.log("Selected:", image);
+  };
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -59,7 +100,85 @@ export default function UserInterface({ user, users, setgroupConversation }) {
     setOpenUpload(true);
   };
 
-  const handleCloseUpload = () => {};
+  const handleCloseUpload = () => {
+    setOpenUpload(false);
+    setSelectedFile(null);
+    setSelectedImage(null);
+  };
+
+  const handleSlectedPicture = async () => {
+    if (selectedImage) {
+      const updatedUser = {
+        ...user,
+        profilePicture: selectedImage?.displayName,
+      };
+      try {
+        await apiRequest.post("/users", updatedUser);
+        updateUser({ profilePicture: selectedImage });
+        setOpenUpload(false);
+        setSelectedFile(null);
+        setSelectedImage(null);
+      } catch (e) {
+        console.log(e);
+      }
+    } else {
+      setErrorMessage("Please Select an Image");
+      setOpenSnack(true);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setSelectedFile(file);
+      console.log("Selected file:", file.name);
+    } else {
+      setErrorMessage("Please select an image file");
+      setOpenSnack(true);
+      event.target.value = "";
+    }
+  };
+
+  const handleUploadFile = async () => {
+    if (!selectedFile) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("profileImage", selectedFile);
+
+    try {
+      const response = await apiRequest.post(
+        "/users/upload-profile-image",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Upload successful:", response.data);
+
+      const newImage = response.data.image;
+      setImages((prevImages) => [...prevImages, newImage]);
+
+      setSelectedFile(null);
+
+      const fileInput = document.getElementById(
+        "file-upload"
+      ) as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
+
+      setErrorMessage("Image uploaded successfully!");
+      setOpenSnack(true);
+    } catch (error) {
+      console.error("Upload failed:", error);
+      setErrorMessage("Upload failed");
+      setOpenSnack(true);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleClose = async () => {
     if (groupName) {
@@ -71,6 +190,9 @@ export default function UserInterface({ user, users, setgroupConversation }) {
       try {
         const res = await apiRequest.post("/conversations", groupConversation);
         setgroupConversation(res.data.status);
+        setAddGroup([]);
+        setGroupName("");
+        setOpen(false);
       } catch (e) {
         console.log(e);
       }
@@ -181,47 +303,93 @@ export default function UserInterface({ user, users, setgroupConversation }) {
         <DialogContent>
           <Box
             className="Popup-content"
-            sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              mt: 1,
+              justifyContent: "center",
+            }}
           >
-            <Input
-              placeholder="Change Profile Picture"
+            <input
+              id="file-upload"
               type="file"
-              onChange={() => {}}
-            ></Input>
-            {users.map((userAdd, index) => {
-              return (
-                <Box
-                  key={userAdd._id || index}
-                  className="Popup-content-warpper"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
+            <label htmlFor="file-upload">
+              <Button
+                variant="outlined"
+                component="span"
+                startIcon={<AttachFileIcon />}
+                size="small"
+              >
+                Upload Image
+              </Button>
+            </label>
+            {selectedFile && (
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{ display: "block", mt: 0.5 }}
+                >
+                  Selected: {selectedFile.name}
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={handleUploadFile}
+                  disabled={uploading}
+                  sx={{ mt: 1, display: "block" }}
+                  size="small"
+                >
+                  {uploading ? "Uploading..." : "Upload Image"}
+                </Button>
+              </Box>
+            )}
+            {selectedImage && (
+              <Box sx={{ mb: 3, textAlign: "center" }}>
+                <Avatar
+                  src={selectedImage.fullUrl}
+                  sx={{ width: 80, height: 80, mx: "auto", mb: 1 }}
+                />
+                <Typography color="black">
+                  Selected: {selectedImage.displayName}
+                </Typography>
+              </Box>
+            )}
+
+            <List>
+              {images.map((image) => (
+                <ListItem
+                  key={image.id}
+                  onClick={() => handleImageSelect(image)}
                   sx={{
-                    display: user?._id !== userAdd._id ? "flex" : "none",
-                    justifyContent: "space-around",
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: "rgba(255, 255, 255, 0.1)" },
+                    border:
+                      selectedImage?.id === image.id
+                        ? "2px solid #1976d2"
+                        : "none",
+                    borderRadius: 1,
+                    mb: 1,
                   }}
                 >
-                  <Typography>{userAdd.username}</Typography>
-                  <AddIcon
-                    sx={{ cursor: "pointer" }}
-                    onClick={() => {
-                      addNewUser(userAdd);
-                    }}
+                  <ListItemAvatar>
+                    <Avatar src={image.fullUrl} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={image.displayName}
+                    sx={{ color: "black" }}
                   />
-                </Box>
-              );
-            })}
-          </Box>
-          <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-            {addGroup.map((userAdd, index) => {
-              return (
-                <Typography key={userAdd._id} sx={{ m: 1 }}>
-                  {userAdd._id === user._id ? "" : userAdd?.username}
-                </Typography>
-              );
-            })}
+                </ListItem>
+              ))}
+            </List>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Create</Button>
-          <Button onClick={cancelGroup} autoFocus>
+          <Button onClick={handleSlectedPicture}>Select</Button>
+          <Button onClick={handleCloseUpload} autoFocus>
             Cancel
           </Button>
         </DialogActions>

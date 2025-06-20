@@ -5,6 +5,9 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { verifyToken } from "../../middleware/verifyToken";
 import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
+import multer from "multer";
 dotenv.config();
 
 const accesstoken: string = process.env.ACCESS_TOKEN_SECRET || "";
@@ -13,6 +16,7 @@ interface User {
   _id?: mongoose.Types.ObjectId;
   username: string;
   password: string;
+  profilePicture: string;
   BlockedList: string[];
   __v?: number;
 }
@@ -22,6 +26,22 @@ const router = express.Router();
 router.get("/", async (req: Request, res: Response): Promise<any> => {
   const users = await userService.getAllUsers();
   return res.json(users);
+});
+
+router.get("/images", (req: Request, res: Response) => {
+  const files = fs.readdirSync(path.join(__dirname, "../../Pictures"));
+  const imageFiles = files.filter((file) =>
+    [".jpg", ".jpeg", ".png", ".gif"].includes(path.extname(file).toLowerCase())
+  );
+
+  const imageList = imageFiles.map((filename, index) => ({
+    id: index + 1,
+    name: filename,
+    displayName: filename.replace(/\.[^/.]+$/, ""),
+    url: `/images/${filename}`,
+    fullUrl: `http://localhost:8000/images/${filename}`,
+  }));
+  res.json(imageList);
 });
 
 router.get("/getToken", async (req: Request, res: Response): Promise<any> => {
@@ -52,6 +72,7 @@ router.post("/", async (req: Request, res: Response): Promise<any> => {
     const user: User = {
       username: username,
       password: hashedPassword,
+      profilePicture: "",
       BlockedList: [],
     };
     const status = await userService.createUser(user);
@@ -139,6 +160,61 @@ router.post(
   }
 );
 
-// router.get("/:id", async (req, res) => {});
+router.post("/updateUser", verifyToken, (req: Request, res: Response) => {});
+
+// Configure multer storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, "../../Pictures");
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    // Create unique filename
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const fileExtension = path.extname(file.originalname);
+    cb(null, `uploaded-${uniqueSuffix}${fileExtension}`);
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed!") as any, false);
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
+
+router.post(
+  "/upload-profile-image",
+  upload.single("profileImage"),
+  async (req: Request, res: Response): Promise<any> => {
+    // Make it async and Promise<any>
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const imageData = {
+        id: Date.now(),
+        name: req.file.filename,
+        displayName: req.file.filename.replace(/\.[^/.]+$/, ""),
+        url: `/images/${req.file.filename}`,
+        fullUrl: `http://localhost:8000/images/${req.file.filename}`,
+      };
+
+      return res.json({
+        // Add 'return' here for consistency
+        message: "File uploaded successfully",
+        image: imageData,
+      });
+    } catch (error) {
+      return res.status(500).json({ error: "Upload failed" }); // Add 'return' here too
+    }
+  }
+);
 
 export default router;

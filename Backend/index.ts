@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import conversetionController from "./Services/Controller/converstionController";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import multer from "multer";
 
 dotenv.config();
 const accesstoken: string = process.env.ACCESS_TOKEN_SECRET || "";

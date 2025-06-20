@@ -3,6 +3,9 @@ import userModel from "../Models/usersModel";
 interface User {
   username: string;
   password: string;
+  profilePicture: string;
+  BlockedList: string[];
+  __v?: number;
 }
 
 const getAllUsers = async () => {
