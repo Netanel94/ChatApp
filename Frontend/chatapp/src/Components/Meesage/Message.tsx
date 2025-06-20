@@ -1,13 +1,30 @@
 import { Box, Avatar, Typography } from "@mui/material";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
+import apiRequest from "../../Api/apiRequest.";
+interface User {
+  _id: string;
+  username: string;
+  password: string;
+  profilePicture: string;
+  BlockedList: string[];
+}
 
-function Message({ own, message }) {
+function Message({ own, message, user }) {
   const timeString = formatDistanceToNow(new Date(message?.createdAt), {
     addSuffix: true,
   });
+  const [friend, setFriend] = useState<User | null>(null);
   useEffect(() => {
-    // console.log(message);
+    const getUser = async () => {
+      try {
+        const res = await apiRequest.get(`/users/${message.senderId}`);
+        setFriend(res.data);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    getUser();
   }, []);
   const PF: string = import.meta.env.VITE_PUBLIC_FOLDER || "";
   return (
@@ -29,7 +46,11 @@ function Message({ own, message }) {
             height: 40,
             borderRadius: "50%",
           }}
-          src={`${PF}/Unknown_person.jpg`}
+          src={
+            own
+              ? `${PF}/${user?.profilePicture}.png`
+              : `${PF}/${friend?.profilePicture}.png`
+          }
         />
         <Typography
           sx={{

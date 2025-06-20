@@ -417,6 +417,7 @@ const Main = () => {
                     <Message
                       own={message.senderId === user?._id}
                       message={message}
+                      user={user}
                     />
                   </Box>
                 );
