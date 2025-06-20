@@ -7,6 +7,8 @@ import { useUserStore } from "../../../zustand_Store/store";
 interface User {
   username: string;
   password: string;
+  profilePicture: string;
+  blockedList: string[];
 }
 
 interface Conversation {
@@ -19,6 +21,7 @@ interface Conversation {
 function Converstions({ currConvo }) {
   const PF: string = import.meta.env.VITE_PUBLIC_FOLDER || "";
   const [currChatName, setCurrChatName] = useState<string>("");
+  const [friend, setFriend] = useState<User | null>(null);
   const { user } = useUserStore();
   const timeString =
     currConvo.conversation?.length > 0
@@ -36,9 +39,12 @@ function Converstions({ currConvo }) {
         const friendName = currConvo.chatName.find(
           (currUser: any) => currUser != user?.username
         );
-        // console.log(friendId);
-        // const res = await apiRequest.get(`/users/${friendId}`);
-        // console.log(res);
+        const friendId = currConvo.users.find(
+          (currUser) => currUser !== user?._id
+        );
+        console.log(friendId);
+        const res = await apiRequest.get(`/users/${friendId}`);
+        setFriend(res.data);
         setCurrChatName(friendName);
       } else {
         const chatName = currConvo.chatName[0];
@@ -65,14 +71,29 @@ function Converstions({ currConvo }) {
         },
       }}
     >
-      <Avatar
-        sx={{
-          width: 40,
-          height: 40,
-          borderRadius: "50%",
-        }}
-        src={`${PF}/Unknown_person.jpg`}
-      />
+      {friend ? (
+        <Avatar
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+          }}
+          src={
+            friend.profilePicture
+              ? `${PF}/${friend.profilePicture}.png`
+              : `${PF}/Unknown_person.jpg`
+          }
+        />
+      ) : (
+        <Avatar
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+          }}
+          src={`${PF}/Unknown_person.jpg`}
+        />
+      )}
       <Box
         sx={{
           width: 0,

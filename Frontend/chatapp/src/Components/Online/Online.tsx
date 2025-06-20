@@ -100,7 +100,11 @@ export default function Online({
           height: "40px",
           borderRadius: "50%",
         }}
-        src={`${PF}/Unknown_person.jpg`}
+        src={
+          user.profilePicture
+            ? `${PF}/${user.profilePicture}.png`
+            : `${PF}/Unknown_person.jpg`
+        }
       ></Avatar>
       <Box
         sx={{

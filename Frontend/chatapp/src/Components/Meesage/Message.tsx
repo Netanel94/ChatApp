@@ -25,11 +25,11 @@ function Message({ own, message }) {
           sx={{
             p: 1,
             m: 0.5,
-            width: 25,
-            height: 25,
+            width: 40,
+            height: 40,
             borderRadius: "50%",
           }}
-          src={`${PF}person/Unknown_person.jpg`}
+          src={`${PF}/Unknown_person.jpg`}
         />
         <Typography
           sx={{

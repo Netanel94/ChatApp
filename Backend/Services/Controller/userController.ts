@@ -160,7 +160,17 @@ router.post(
   }
 );
 
-router.post("/updateUser", verifyToken, (req: Request, res: Response) => {});
+router.post(
+  "/updateUser",
+  verifyToken,
+  async (req: Request, res: Response): Promise<any> => {
+    const updatedUser = req.body;
+    const userId = req.userId!;
+    const status = await userService.updateUser(userId, updatedUser);
+
+    return res.json({ status });
+  }
+);
 
 // Configure multer storage
 const storage = multer.diskStorage({

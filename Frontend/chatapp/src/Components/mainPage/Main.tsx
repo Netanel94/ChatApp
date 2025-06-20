@@ -425,46 +425,74 @@ const Main = () => {
           ) : (
             <Box
               sx={{
-                flex: 1,
-                overflowY: "auto",
                 display: "flex",
                 flexDirection: "column",
-                padding: "20px",
-                gap: "16px",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                width: "100%",
+                opacity: 0.3,
+                userSelect: "none",
+                gap: 2,
               }}
             >
-              <Typography color="white">No chat</Typography>
+              <Typography
+                variant="h3"
+                sx={{
+                  color: "rgb(206, 203, 203)",
+                  fontWeight: 300,
+                  textAlign: "center",
+                  letterSpacing: 1,
+                }}
+              >
+                Start a chat...
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "rgb(206, 203, 203)",
+                  opacity: 0.7,
+                  textAlign: "center",
+                  maxWidth: 300,
+                }}
+              >
+                Select a conversation from the sidebar to begin messaging
+              </Typography>
             </Box>
           )}
 
-          <Box
-            sx={{
-              padding: "16px 20px",
-              borderTop: "2px solid #ddd",
-              bgcolor: "grey.900",
-            }}
-            className="chatBoxBottom"
-          >
-            <Input
-              value={message}
-              onChange={(e) => {
-                setMessage(e.target.value);
-              }}
-              fullWidth
-              onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
+          {currConvoId ? (
+            <Box
               sx={{
-                padding: "12px 16px",
-                height: "50px",
-                fontSize: "1.1rem",
-                borderRadius: "24px",
-                background: "white",
-                color: "black",
-                border: "1px solid #ddd",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                padding: "16px 20px",
+                borderTop: "2px solid #ddd",
+                bgcolor: "grey.900",
               }}
-            ></Input>
-          </Box>
+              className="chatBoxBottom"
+            >
+              <Input
+                value={message}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                }}
+                fullWidth
+                onKeyDown={handleKeyDown}
+                placeholder="Type a message..."
+                sx={{
+                  padding: "12px 16px",
+                  height: "50px",
+                  fontSize: "1.1rem",
+                  borderRadius: "24px",
+                  background: "white",
+                  color: "black",
+                  border: "1px solid #ddd",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                }}
+              ></Input>
+            </Box>
+          ) : (
+            ""
+          )}
         </Box>
       </Box>
       <Box

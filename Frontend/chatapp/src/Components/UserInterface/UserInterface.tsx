@@ -83,6 +83,8 @@ export default function UserInterface({ user, users, setgroupConversation }) {
       } finally {
         setLoading(false);
       }
+      console.log(user);
+      console.log(`${PF}/${user.profilePicture}.png`);
     };
     fetchImages();
   }, []);
@@ -113,13 +115,13 @@ export default function UserInterface({ user, users, setgroupConversation }) {
         profilePicture: selectedImage?.displayName,
       };
       try {
-        await apiRequest.post("/users", updatedUser);
-        updateUser({ profilePicture: selectedImage });
+        await apiRequest.post("/users/updateUser", updatedUser);
+        updateUser({ profilePicture: selectedImage?.displayName });
         setOpenUpload(false);
         setSelectedFile(null);
         setSelectedImage(null);
       } catch (e) {
-        console.log(e);
+        setErrorMessage("Error Couldn't Update Picture");
       }
     } else {
       setErrorMessage("Please Select an Image");
@@ -250,7 +252,11 @@ export default function UserInterface({ user, users, setgroupConversation }) {
           height: "60px",
           borderRadius: "50%",
         }}
-        src={`${PF}/Unknown_person.jpg`}
+        src={
+          user.profilePicture
+            ? `${PF}/${user.profilePicture}.png`
+            : `${PF}/Unknown_person.jpg`
+        }
       ></Avatar>
       <Typography sx={{ mt: 0.5, ml: 3 }} color="white">
         {user?.username}
