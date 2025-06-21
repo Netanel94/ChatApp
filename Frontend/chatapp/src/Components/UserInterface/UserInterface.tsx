@@ -27,6 +27,11 @@ import apiRequest from "../../Api/apiRequest.";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { useUserStore } from "../../../zustand_Store/store";
+import LogoutIcon from "@mui/icons-material/Logout";
+import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import { useNavigate } from "react-router-dom";
+import { grey } from "@mui/material/colors";
+import Checkbox from "@mui/material/Checkbox";
 
 interface Message {
   senderId: string | undefined;
@@ -56,10 +61,18 @@ interface ProfileImage {
   fullUrl: string;
 }
 
-export default function UserInterface({ user, users, setgroupConversation }) {
+export default function UserInterface({
+  user,
+  users,
+  setgroupConversation,
+  groupConversations,
+  leftConversation,
+}) {
   const PF: string = import.meta.env.VITE_PUBLIC_FOLDER || "";
   const [open, setOpen] = useState(false);
   const [openUpload, setOpenUpload] = useState(false);
+  const [openLeaveGroup, setOpenLeaveGroup] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
   const [openSnack, setOpenSnack] = useState(false);
   const [addGroup, setAddGroup] = useState<User[]>([user]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -67,10 +80,13 @@ export default function UserInterface({ user, users, setgroupConversation }) {
   const [usersId, setUserIds] = useState<string[]>([user._id]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const updateUser = useUserStore((state) => state.updateUser);
+  const { clearUser } = useUserStore();
   const [images, setImages] = useState<ProfileImage[]>([]);
   const [selectedImage, setSelectedImage] = useState<ProfileImage | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const navigate = useNavigate();
+  const [groupToLeave, setGroupToLeave] = useState<Conversation | null>(null);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -94,8 +110,48 @@ export default function UserInterface({ user, users, setgroupConversation }) {
     console.log("Selected:", image);
   };
 
+  const handleRemoveGroup = (
+    groupConvo: Conversation,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setGroupToLeave(groupConvo);
+    setIsChecked(event.target.checked);
+  };
+
+  const canceLeaveGroup = () => {
+    setOpenLeaveGroup(false);
+    setGroupToLeave(null);
+    setIsChecked(false);
+  };
+
+  const handleLeaveGroup = async () => {
+    try {
+      if (isChecked) {
+        const newConvoData = groupToLeave?.users.filter(
+          (currUser) => currUser !== user._id
+        );
+
+        const newData = { ...groupToLeave, users: newConvoData };
+
+        await apiRequest.post(`conversations/${groupToLeave?._id}`, newData);
+
+        leftConversation(groupToLeave);
+      } else {
+        setErrorMessage("Please Select a Group");
+        setOpenSnack(true);
+      }
+    } catch (err) {
+      setErrorMessage("Couldn't Leave Group Server Error");
+      setOpenSnack(true);
+    }
+  };
+
   const handleClickOpen = () => {
     setOpen(true);
+  };
+
+  const handleClickLeaveGroup = () => {
+    setOpenLeaveGroup(true);
   };
 
   const handleClickUpload = () => {
@@ -106,6 +162,16 @@ export default function UserInterface({ user, users, setgroupConversation }) {
     setOpenUpload(false);
     setSelectedFile(null);
     setSelectedImage(null);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await apiRequest.post("/users/logout");
+      clearUser();
+      navigate("/");
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleSlectedPicture = async () => {
@@ -247,7 +313,7 @@ export default function UserInterface({ user, users, setgroupConversation }) {
       <Avatar
         sx={{
           mt: 2,
-          ml: 2.5,
+          ml: 3.5,
           width: "60px",
           height: "60px",
           borderRadius: "50%",
@@ -258,10 +324,18 @@ export default function UserInterface({ user, users, setgroupConversation }) {
             : `${PF}/Unknown_person.jpg`
         }
       ></Avatar>
-      <Typography sx={{ mt: 0.5, ml: 3 }} color="white">
+      <Typography sx={{ mt: 0.5, ml: 4.1 }} color="white">
         {user?.username}
       </Typography>
-      <Box sx={{ display: "flex", gap: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          flexWrap: "wrap",
+          maxWidth: "150px",
+          justifyContent: "center",
+        }}
+      >
         <Tooltip title="Create Group Chat">
           <IconButton
             onClick={handleClickOpen}
@@ -294,6 +368,40 @@ export default function UserInterface({ user, users, setgroupConversation }) {
             }}
           >
             <FileUploadIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Leave Group">
+          <IconButton
+            onClick={handleClickLeaveGroup}
+            sx={{
+              p: 2,
+              mt: 1,
+              height: "10px",
+              width: "10px",
+              borderRadius: "30%",
+              bgcolor: "grey.900",
+              ":hover": { background: "rgba(107, 104, 104, 0.15)" },
+              color: "white",
+            }}
+          >
+            <MeetingRoomIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="LogOut">
+          <IconButton
+            onClick={handleLogout}
+            sx={{
+              p: 2,
+              mt: 1,
+              height: "10px",
+              width: "10px",
+              borderRadius: "30%",
+              bgcolor: "grey.900",
+              ":hover": { background: "rgba(107, 104, 104, 0.15)" },
+              color: "white",
+            }}
+          >
+            <LogoutIcon />
           </IconButton>
         </Tooltip>
       </Box>
@@ -458,6 +566,57 @@ export default function UserInterface({ user, users, setgroupConversation }) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog
+        open={openLeaveGroup}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+        sx={{ maxWidth: "300" }}
+      >
+        <DialogTitle id="alert-dialog-title">Leave Group Chat</DialogTitle>
+        <DialogContent>
+          <Box
+            className="Popup-content"
+            sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}
+          >
+            {groupConversations.map((group, index) => {
+              return (
+                <Box
+                  key={index}
+                  className="Popup-content-warpper"
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    // border: "1px solid black",
+                  }}
+                >
+                  <Typography sx={{ p: 1 }}>{group.chatName}</Typography>
+                  <Checkbox
+                    sx={{
+                      // border: "1px solid black",
+                      color: grey[800],
+                      "&.Mui-checked": {
+                        color: grey[600],
+                      },
+                    }}
+                    onChange={(event) => {
+                      handleRemoveGroup(group, event);
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleLeaveGroup}>Leave Group</Button>
+          <Button onClick={canceLeaveGroup} autoFocus>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         open={openSnack}
         autoHideDuration={4000}

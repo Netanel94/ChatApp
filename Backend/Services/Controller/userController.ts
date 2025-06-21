@@ -172,7 +172,12 @@ router.post(
   }
 );
 
-// Configure multer storage
+router.post("/logout", async (req: Request, res: Response): Promise<any> => {
+  res.clearCookie("token");
+
+  res.status(200).json({ message: "Logout successful" });
+});
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, "../../Pictures");
@@ -195,7 +200,7 @@ const upload = multer({
       cb(new Error("Only image files are allowed!") as any, false);
     }
   },
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
 router.post(

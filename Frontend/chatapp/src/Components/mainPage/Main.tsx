@@ -8,6 +8,8 @@ import {
   Typography,
   createTheme,
   ThemeProvider,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import Converstions from "../Converstions/Converstions";
 import { Search } from "@mui/icons-material";
@@ -78,6 +80,8 @@ const Main = () => {
   const [groupConversations, setGroupConversations] = useState<Conversation[]>(
     []
   );
+  const [conversationsNames, setConversationsNames] = useState([]);
+  const [searchValue, setSearchValue] = useState<string>("");
 
   useEffect(() => {
     const startSocket = async () => {
@@ -103,7 +107,7 @@ const Main = () => {
       );
 
       socket.current.emit("createGroups", currGroups);
-
+      console.log("Current Groups" + JSON.stringify(currGroups));
       setGroupConversations(currGroups);
     };
     startSocket();
@@ -123,6 +127,33 @@ const Main = () => {
   const groupConversation = (newConversation: Conversation) => {
     setNewGroupConversation(newConversation);
     setConversations((prevConvos) => [...prevConvos, newConversation]);
+  };
+
+  const leftConversation = (groupChat: Conversation) => {
+    if (currConvoId === groupChat._id) {
+      setCurrConvoid("");
+    }
+
+    const newConvoersations = conversations.filter(
+      (convo) => convo._id !== groupChat._id
+    );
+
+    const newGroupConversation = groupConversations.filter(
+      (convo) => convo._id !== groupChat._id
+    );
+    setConversations(newConvoersations);
+    setGroupConversations(newGroupConversation);
+  };
+
+  const handleEnterPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter") {
+      const target = event.target as HTMLInputElement;
+      const value = target.value;
+      setSearchValue(value);
+      console.log("Search for:", value);
+
+      // Your search logic here
+    }
   };
 
   useEffect(() => {
@@ -209,7 +240,22 @@ const Main = () => {
       const res = await apiRequest.get("/conversations");
       const userRes = await apiRequest.get("/users");
       setUsers(userRes.data);
-      setConversations(res.data);
+
+      const filteredList = res.data.map((convo) => {
+        if (convo.chatName.length === 2) {
+          let newChatName;
+          if (convo.chatName[0] === user?.username) {
+            newChatName = convo.chatName[1];
+          } else {
+            newChatName = convo.chatName[0];
+          }
+          return { ...convo, chatName: newChatName };
+        }
+        return convo;
+      });
+      const names = filteredList.map((convo) => convo.chatName);
+      setConversationsNames(names);
+      setConversations(filteredList);
     };
     fetchConvos();
   }, []);
@@ -325,7 +371,28 @@ const Main = () => {
           >
             Chats
           </Typography>
-          <Input
+          <Autocomplete
+            disablePortal
+            options={conversationsNames}
+            sx={{
+              width: 300,
+              border: "1px solid black",
+              fontSize: "1rem",
+              padding: "4px 8px",
+              borderRadius: "4px",
+              background: "rgb(196, 196, 196)",
+              color: "rgb(218, 214, 214)",
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                onKeyDown={handleEnterPress}
+                label="Search a Conversation..."
+              />
+            )}
+          />
+
+          {/* <Input
             startAdornment={
               <InputAdornment position="start">
                 <Search
@@ -357,7 +424,7 @@ const Main = () => {
               },
             }}
             placeholder="Search convos"
-          />
+          /> */}
         </Box>
         <Box
           sx={{ border: "", overflowY: "auto" }}
@@ -371,7 +438,14 @@ const Main = () => {
                   checkDifferentConvo(conversation._id, conversation);
                 }}
               >
-                <Converstions currConvo={conversation} />{" "}
+                <Converstions
+                  searchTerm={
+                    searchValue
+                      ? conversation.chatName.includes(searchValue)
+                      : true
+                  }
+                  currConvo={conversation}
+                />
               </Box>
             );
           })}
@@ -534,6 +608,8 @@ const Main = () => {
           })}
         </Box>
         <UserInterface
+          leftConversation={leftConversation}
+          groupConversations={groupConversations}
           user={user}
           users={users}
           setgroupConversation={groupConversation}

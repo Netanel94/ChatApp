@@ -18,7 +18,7 @@ interface Conversation {
   conversetion: [];
 }
 
-function Converstions({ currConvo }) {
+function Converstions({ currConvo, searchTerm }) {
   const PF: string = import.meta.env.VITE_PUBLIC_FOLDER || "";
   const [currChatName, setCurrChatName] = useState<string>("");
   const [friend, setFriend] = useState<User | null>(null);
@@ -35,21 +35,13 @@ function Converstions({ currConvo }) {
 
   useEffect(() => {
     const chatName = async () => {
-      if (currConvo.chatName.length > 1) {
-        const friendName = currConvo.chatName.find(
-          (currUser: any) => currUser != user?.username
-        );
-        const friendId = currConvo.users.find(
-          (currUser) => currUser !== user?._id
-        );
-        console.log(friendId);
-        const res = await apiRequest.get(`/users/${friendId}`);
-        setFriend(res.data);
-        setCurrChatName(friendName);
-      } else {
-        const chatName = currConvo.chatName[0];
-        setCurrChatName(chatName);
-      }
+      const friendId = currConvo.users.find(
+        (currUser) => currUser !== user?._id
+      );
+      const res = await apiRequest.get(`/users/${friendId}`);
+      setFriend(res.data);
+
+      setCurrChatName(currConvo.chatName);
     };
 
     chatName();
@@ -58,7 +50,7 @@ function Converstions({ currConvo }) {
   return (
     <Box
       sx={{
-        display: "flex",
+        display: searchTerm ? "flex" : "none",
         alignItems: "center",
         bgcolor: "grey.900",
         p: 1,
