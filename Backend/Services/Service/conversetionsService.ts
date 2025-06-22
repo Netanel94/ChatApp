@@ -6,7 +6,10 @@ interface Converstion {
 }
 
 const getConversetions = async (id: string) => {
-  return await conversetionModel.find({ users: { $in: [id] } });
+  return await conversetionModel
+    .find({ users: { $in: [id] } })
+    .read("primary") // Force read from primary replica
+    .exec();
 };
 
 const createConversetion = async (convo: Converstion): Promise<any> => {
