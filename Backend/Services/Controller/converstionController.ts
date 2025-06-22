@@ -63,10 +63,17 @@ router.get(
   }
 );
 
-router.post("/", async (req: Request, res: Response): Promise<any> => {
-  const newConverstion = req.body;
-  const status = await conversetionsService.createConversetion(newConverstion);
-  return res.json({ status });
-});
+router.post(
+  "/",
+  verifyToken,
+  async (req: Request, res: Response): Promise<any> => {
+    const newConverstion = req.body;
+    const userId = req.userId!;
+    const status = await conversetionsService.createConversetion(
+      newConverstion
+    );
+    return res.json({ status });
+  }
+);
 
 export default router;

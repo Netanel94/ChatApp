@@ -40,8 +40,11 @@ function Converstions({ currConvo, searchTerm }) {
       );
       const res = await apiRequest.get(`/users/${friendId}`);
       setFriend(res.data);
-
-      setCurrChatName(currConvo.chatName);
+      if (currConvo.chatName.length > 1) {
+        setCurrChatName(res.data.username);
+      } else {
+        setCurrChatName(currConvo.chatName);
+      }
     };
 
     chatName();

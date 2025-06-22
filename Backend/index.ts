@@ -70,6 +70,21 @@ io.on("connection", (socket: Socket) => {
     chats.forEach((chat: any) => socket.join(`conversation : ${chat._id}`));
   });
 
+  socket.on("newGroupCreated", ({ chat, userId }) => {
+    chat.users.forEach((user: string) => {
+      const currUser = getUser(user);
+      if (currUser) {
+        if (!Array.isArray(currUser)) {
+          if (currUser.userId !== userId) {
+            io.to(currUser.socketId).emit("newConvo", chat);
+          }
+          const userSocket = io.sockets.sockets.get(currUser.socketId);
+          userSocket?.join(`conversation : ${chat._id}`);
+        }
+      }
+    });
+  });
+
   socket.on("sendMessage", ({ senderId, reciverId, message, convoId }) => {
     console.log(`Message from ${senderId} to ${reciverId}: ${message}`);
     const user = getUser(reciverId);
@@ -78,7 +93,7 @@ io.on("connection", (socket: Socket) => {
         console.log(`Sending message to socket: ${user.socketId}`);
         io.to(user.socketId).emit("getMessage", { senderId, message, convoId });
       } else {
-        io.to(`conversation : ${convoId}`).emit("getMessage", {
+        socket.to(`conversation : ${convoId}`).emit("getMessage", {
           senderId,
           message,
           convoId,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useInsertionEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -82,6 +82,7 @@ const Main = () => {
   );
   const [conversationsNames, setConversationsNames] = useState([]);
   const [searchValue, setSearchValue] = useState<string>("");
+  const [arrivalConvo, setArrivalConvo] = useState<Conversation | null>(null);
 
   useEffect(() => {
     const startSocket = async () => {
@@ -100,6 +101,10 @@ const Main = () => {
           createdAt: new Date().toISOString(),
           convoId: newMessage.convoId,
         });
+      });
+
+      socket.current.on("newConvo", (newChat: Conversation) => {
+        setArrivalConvo(newChat);
       });
       const res = await apiRequest.get("/conversations");
       const currGroups = res.data.filter(
@@ -120,12 +125,32 @@ const Main = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (arrivalConvo) {
+      setConversations((prevConvos) => [...prevConvos, arrivalConvo]);
+    }
+  }, [arrivalConvo]);
+
   const newConvoUpdate = (newConversation: Conversation) => {
+    if (socket && user) {
+      socket.current?.emit("newGroupCreated", {
+        chat: newConversation,
+        userId: user._id,
+      });
+    }
     setConversations((prevConvos) => [...prevConvos, newConversation]);
   };
 
   const groupConversation = (newConversation: Conversation) => {
     setNewGroupConversation(newConversation);
+    setGroupConversations([...groupConversations, newConversation]);
+    if (socket && user) {
+      socket.current?.emit("newGroupCreated", {
+        chat: newConversation,
+        userId: user._id,
+      });
+    }
+
     setConversations((prevConvos) => [...prevConvos, newConversation]);
   };
 
@@ -286,6 +311,7 @@ const Main = () => {
       socket.current?.emit("sendMessage", {
         senderId: user?._id,
         reciverId,
+        convoId: currConvo._id,
         message,
       });
     } else if (socket) {
@@ -391,40 +417,6 @@ const Main = () => {
               />
             )}
           />
-
-          {/* <Input
-            startAdornment={
-              <InputAdornment position="start">
-                <Search
-                  sx={{
-                    height: "24px",
-                    width: "24px",
-                    background: "rgb(49, 49, 49)",
-                    color: "rgb(148, 148, 148)",
-                    marginRight: 1,
-                  }}
-                />
-              </InputAdornment>
-            }
-            sx={{
-              border: "1px solid black",
-              fontSize: "1rem",
-              padding: "4px 8px",
-              borderRadius: "4px",
-              background: "rgb(49, 49, 49)",
-              color: "rgb(218, 214, 214)",
-              "&:before": {
-                borderBottomColor: "green",
-              },
-              "&:hover:not(.Mui-disabled):before": {
-                borderBottomColor: "lightgreen",
-              },
-              "&:after": {
-                borderBottomColor: "darkgreen",
-              },
-            }}
-            placeholder="Search convos"
-          /> */}
         </Box>
         <Box
           sx={{ border: "", overflowY: "auto" }}

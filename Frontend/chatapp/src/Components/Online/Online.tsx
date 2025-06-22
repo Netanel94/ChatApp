@@ -54,7 +54,8 @@ export default function Online({
     const currConvo: Conversation = conversations.find(
       (conversation) =>
         conversation.users.includes(user._id) &&
-        conversation.users.includes(currUser._id)
+        conversation.users.includes(currUser._id) &&
+        conversation.length === 2
     );
 
     if (currConvo) {
