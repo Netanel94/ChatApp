@@ -77,7 +77,7 @@ export default function UserInterface({
   const [addGroup, setAddGroup] = useState<User[]>([user]);
   const [errorMessage, setErrorMessage] = useState("");
   const [groupName, setGroupName] = useState("");
-  const [usersId, setUserIds] = useState<string[]>([user._id]);
+  const [usersId, setUserIds] = useState<string[]>([user?._id]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const updateUser = useUserStore((state) => state.updateUser);
   const { clearUser } = useUserStore();
@@ -100,7 +100,7 @@ export default function UserInterface({
         setLoading(false);
       }
       console.log(user);
-      console.log(`${PF}/${user.profilePicture}.png`);
+      console.log(`${PF}/${user?.profilePicture}.png`);
     };
     fetchImages();
   }, []);
@@ -168,6 +168,8 @@ export default function UserInterface({
     try {
       await apiRequest.post("/users/logout");
       clearUser();
+      sessionStorage.clear();
+      localStorage.clear();
       navigate("/");
     } catch (err) {
       console.log(err);
@@ -319,8 +321,8 @@ export default function UserInterface({
           borderRadius: "50%",
         }}
         src={
-          user.profilePicture
-            ? `${PF}/${user.profilePicture}.png`
+          user?.profilePicture
+            ? `${PF}/${user?.profilePicture}.png`
             : `${PF}/Unknown_person.jpg`
         }
       ></Avatar>
@@ -534,11 +536,11 @@ export default function UserInterface({
                   key={userAdd._id || index}
                   className="Popup-content-warpper"
                   sx={{
-                    display: user?._id !== userAdd._id ? "flex" : "none",
+                    display: user?._id !== userAdd?._id ? "flex" : "none",
                     justifyContent: "space-around",
                   }}
                 >
-                  <Typography>{userAdd.username}</Typography>
+                  <Typography>{userAdd?.username}</Typography>
                   <AddIcon
                     sx={{ cursor: "pointer" }}
                     onClick={() => {
@@ -552,8 +554,8 @@ export default function UserInterface({
           <Box sx={{ display: "flex", flexWrap: "wrap" }}>
             {addGroup.map((userAdd, index) => {
               return (
-                <Typography key={userAdd._id} sx={{ m: 1 }}>
-                  {userAdd._id === user._id ? "" : userAdd?.username}
+                <Typography key={userAdd?._id} sx={{ m: 1 }}>
+                  {userAdd?._id === user?._id ? "" : userAdd?.username}
                 </Typography>
               );
             })}

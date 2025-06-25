@@ -111,6 +111,25 @@ const Main = () => {
         (convo: Conversation) => convo.users.length > 2
       );
 
+      const userRes = await apiRequest.get("/users");
+      setUsers(userRes.data);
+
+      const filteredList = res.data.map((convo) => {
+        if (convo.chatName.length === 2) {
+          let newChatName;
+          if (convo.chatName[0] === user?.username) {
+            newChatName = convo.chatName[1];
+          } else {
+            newChatName = convo.chatName[0];
+          }
+          return { ...convo, chatName: newChatName };
+        }
+        return convo;
+      });
+      const names = filteredList.map((convo) => convo.chatName);
+      setConversationsNames(names);
+      setConversations(filteredList);
+
       socket.current.emit("createGroups", currGroups);
       console.log("Current Groups" + JSON.stringify(currGroups));
       setGroupConversations(currGroups);
@@ -206,9 +225,7 @@ const Main = () => {
           );
         } else if (user?._id) {
           const convoToUpdate = conversations.find(
-            (conversation) =>
-              conversation.users.includes(user._id) &&
-              conversation.users.includes(arrivalMessage.senderId)
+            (conversation) => conversation._id === arrivalMessage.convoId
           );
           if (convoToUpdate) {
             const updatedConvo = {
@@ -260,30 +277,30 @@ const Main = () => {
     };
   }, [user?._id]);
 
-  useEffect(() => {
-    const fetchConvos = async () => {
-      const res = await apiRequest.get("/conversations");
-      const userRes = await apiRequest.get("/users");
-      setUsers(userRes.data);
+  // useEffect(() => {
+  //   const fetchConvos = async () => {
+  //     const res = await apiRequest.get("/conversations");
+  //     const userRes = await apiRequest.get("/users");
+  //     setUsers(userRes.data);
 
-      const filteredList = res.data.map((convo) => {
-        if (convo.chatName.length === 2) {
-          let newChatName;
-          if (convo.chatName[0] === user?.username) {
-            newChatName = convo.chatName[1];
-          } else {
-            newChatName = convo.chatName[0];
-          }
-          return { ...convo, chatName: newChatName };
-        }
-        return convo;
-      });
-      const names = filteredList.map((convo) => convo.chatName);
-      setConversationsNames(names);
-      setConversations(filteredList);
-    };
-    fetchConvos();
-  }, []);
+  //     const filteredList = res.data.map((convo) => {
+  //       if (convo.chatName.length === 2) {
+  //         let newChatName;
+  //         if (convo.chatName[0] === user?.username) {
+  //           newChatName = convo.chatName[1];
+  //         } else {
+  //           newChatName = convo.chatName[0];
+  //         }
+  //         return { ...convo, chatName: newChatName };
+  //       }
+  //       return convo;
+  //     });
+  //     const names = filteredList.map((convo) => convo.chatName);
+  //     setConversationsNames(names);
+  //     setConversations(filteredList);
+  //   };
+  //   fetchConvos();
+  // }, []);
 
   const checkDifferentConvo = (id: string, convo: Conversation) => {
     if (id === currConvoId) {

@@ -55,7 +55,7 @@ export default function Online({
       (conversation) =>
         conversation.users.includes(user._id) &&
         conversation.users.includes(currUser._id) &&
-        conversation.length === 2
+        conversation.users.length === 2
     );
 
     if (currConvo) {
