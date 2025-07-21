@@ -125,40 +125,6 @@ The application uses the following main collections in the `ChatUsersDB` databas
 
 You can explore these collections in Studio 3T once the application creates them.
 
-### File Storage
-- Uploaded images are stored in the `Pictures` directory on the backend
-- Files are served statically at `/images` endpoint
 
-## 📱 Usage
 
-1. Open your browser and go to `http://localhost:5173`
-2. Register a new account or login with existing credentials
-3. Start chatting with other users in real-time!
-4. Create group conversations with multiple users
-5. Upload and share images in your conversations
 
-## 🐛 Troubleshooting
-
-**Port already in use:**
-- Backend runs on port 8000, frontend on port 5173
-- Make sure no other applications are using these ports
-- You can change the backend port by modifying the `port` variable in `index.ts`
-
-**MongoDB connection issues:**
-- Verify MongoDB is running locally on port 27017
-- Check that the database name `ChatUsersDB` is correctly referenced
-- Ensure Studio 3T can connect to your local MongoDB instance
-
-**TypeScript compilation issues:**
-- Make sure TypeScript is installed (`npm install -g typescript`)
-- Check that all type definitions are properly installed
-- Verify your `tsconfig.json` configuration
-
-**Socket.io connection problems:**
-- Ensure CORS is properly configured for `http://localhost:5173`
-- Check that both frontend and backend are running
-- Verify the socket connection URL in your frontend code
-
-**Dependencies issues:**
-- Try deleting `node_modules` and `package-lock.json`, then run `npm install` again
-- Ensure you're using compatible Node.js version (16.0.0+)
