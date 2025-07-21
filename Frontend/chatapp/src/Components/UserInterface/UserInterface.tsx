@@ -302,7 +302,6 @@ export default function UserInterface({
   return (
     <Box
       sx={{
-        mt: 5,
         display: "flex",
         justifyContent: "center",
         flexDirection: "column",
@@ -310,25 +309,37 @@ export default function UserInterface({
       }}
       className="UserInfo"
     >
-      <Typography color="white">Current User : </Typography>
-
-      <Avatar
+      <Box
         sx={{
-          mt: 2,
-          ml: 3.5,
-          width: "60px",
-          height: "60px",
-          borderRadius: "50%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          p: 1,
         }}
-        src={
-          user?.profilePicture
-            ? `${PF}/${user?.profilePicture}.png`
-            : `${PF}/Unknown_person.jpg`
-        }
-      ></Avatar>
-      <Typography sx={{ mt: 0.5, ml: 4.1 }} color="white">
-        {user?.username}
-      </Typography>
+      >
+        <Typography sx={{ mb: 1 }} color="white">
+          Current User :{" "}
+        </Typography>
+        <Avatar
+          sx={{
+            // mt: 2,
+            // ml: 3.5,
+            width: "60px",
+            height: "60px",
+            borderRadius: "50%",
+          }}
+          src={
+            user?.profilePicture
+              ? `${PF}/${user?.profilePicture}.png`
+              : `${PF}/Unknown_person.jpg`
+          }
+        ></Avatar>
+        <Typography sx={{}} color="white">
+          {user?.username}
+        </Typography>
+      </Box>
+
       <Box
         sx={{
           display: "flex",

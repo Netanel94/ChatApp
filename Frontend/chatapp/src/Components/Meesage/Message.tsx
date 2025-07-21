@@ -61,6 +61,9 @@ function Message({ own, message, user }) {
             maxWidth: 300,
             wordWrap: "break-word",
             overflowWrap: "break-word",
+            display: "flex",
+            alignItems: "center",
+            minHeight: "40px",
           }}
         >
           {message.message}

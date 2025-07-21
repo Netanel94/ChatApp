@@ -583,39 +583,30 @@ const Main = () => {
         className="usersDisplay"
         sx={{ display: "flex", flexDirection: "column" }}
       >
-        <Box
-          className="Online"
-          sx={{
-            border: "1px solid black",
-            width: "150px",
-            position: "relative",
-            overflowY: "auto",
-          }}
-        >
-          {users.map((onlineUser: User, index: number) => {
-            return (
-              <Online
-                onlineUser={
-                  !!onlineUsers.find(
-                    (currUser) => currUser.userId === onlineUser._id
-                  )
-                }
-                blockedUser={
-                  !!user?.BlockedList.find(
-                    (currUser) => currUser === onlineUser._id
-                  )
-                }
-                own={user?._id !== onlineUser._id}
-                key={index}
-                user={onlineUser}
-                currUser={user}
-                conversations={conversations}
-                checkDifferentConvo={checkDifferentConvo}
-                newConvoUpdate={newConvoUpdate}
-              />
-            );
-          })}
-        </Box>
+        {users.map((onlineUser: User, index: number) => {
+          return (
+            <Online
+              onlineUser={
+                !!onlineUsers.find(
+                  (currUser) => currUser.userId === onlineUser._id
+                )
+              }
+              blockedUser={
+                !!user?.BlockedList.find(
+                  (currUser) => currUser === onlineUser._id
+                )
+              }
+              own={user?._id !== onlineUser._id}
+              key={index}
+              user={onlineUser}
+              currUser={user}
+              conversations={conversations}
+              checkDifferentConvo={checkDifferentConvo}
+              newConvoUpdate={newConvoUpdate}
+            />
+          );
+        })}
+
         <UserInterface
           leftConversation={leftConversation}
           groupConversations={groupConversations}

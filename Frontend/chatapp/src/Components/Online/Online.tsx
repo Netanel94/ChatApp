@@ -87,6 +87,8 @@ export default function Online({
         p: 1,
         gap: 1,
         flexDirection: "row",
+        flexWrap: "warp",
+        width: "200x",
         cursor: "pointer",
         pointerEvents: isBlocked ? "none" : "auto",
         ":hover": {
@@ -107,6 +109,27 @@ export default function Online({
             : `${PF}/Unknown_person.jpg`
         }
       ></Avatar>
+
+      <Typography
+        sx={{
+          color: "white",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {user.username}
+      </Typography>
+      <BlockIcon
+        sx={{
+          color: "white",
+          fontSize: "medium",
+          pointerEvents: "auto",
+          cursor: "pointer",
+          zIndex: 2,
+        }}
+        onClick={blockUser}
+      ></BlockIcon>
       <Box
         sx={{
           position: "absolute",
@@ -119,18 +142,6 @@ export default function Online({
           zIndex: 1,
         }}
       ></Box>
-
-      <Typography sx={{ color: "white" }}>{user.username}</Typography>
-      <BlockIcon
-        sx={{
-          color: "white",
-          fontSize: "medium",
-          pointerEvents: "auto",
-          cursor: "pointer",
-          zIndex: 2,
-        }}
-        onClick={blockUser}
-      ></BlockIcon>
     </Box>
   );
 }
