@@ -2,7 +2,8 @@
 
 A real-time chat application that enables users to communicate instantly with friends and colleagues.
 
-<img width="1280" height="761" alt="image" src="https://github.com/user-attachments/assets/522c35e5-e841-4581-a8d1-8b05fc8d24b3" />
+<img width="1276" height="750" alt="image" src="https://github.com/user-attachments/assets/8b410531-9cb9-4e66-873d-311c80967a0b" />
+
 
 
 ## 🚀 Features
